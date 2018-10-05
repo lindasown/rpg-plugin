@@ -1,0 +1,176 @@
+/*Szenenliste*/
+
+#rpg_scenes_drop_content {
+    display:none;
+    list-style-type:none;
+    width:100%;
+    float:left;
+}
+
+.rpg_unread, .rpg_read {
+    padding-left: 40px;
+}
+
+/*rpg_button*/
+
+.rpg_button {
+    padding:10px;
+    background:#C39F8E;
+    width: 180px;
+    float: left;
+    height: 15px;
+    text-align:center; 
+    margin:0px 5px 5px 0px;
+    text-transform:uppercase;
+    list-style-type:none;
+    font-weight:200;
+    text-decoration:none;
+    font-family: 'Quattrocento', serif !important;
+}
+
+
+
+/*Allgemein*/
+
+.rpg_1-3 {
+    width:30%;
+    display:block;
+    float:left;
+    padding:10px;
+}
+
+.rpg_2-3 {
+    width:60%;
+    display:block;
+    float:left;
+    padding:10px;
+}
+
+/*notifications*/
+
+.rpg_notification {
+    width:100%;
+    float:left;
+    display:block;
+}
+
+
+/*-----------------*/
+
+#bbpress-forums img.avatar {
+    display:none;
+}
+
+.rpg_signatur {
+    border-top:1px solid black;
+    padding-top:15px;
+}
+
+#rpg_add_button {
+    width:100px;
+    height:16px;
+    padding:2px;
+    background:#c39f8e;
+    float:left;
+    border: 1px solid #c39f8e;
+    text-transform:uppercase;
+    text-align:center;
+}
+
+.rpg_information {
+    height: 40px;
+    border-top: 2px solid #c39f8e;
+    display: block;
+    float: left;
+    width: 100%;
+    text-align: center;
+    vertical-align: middle;
+    text-transform: uppercase;
+    margin-top: 20px;
+    padding-top: 10px;
+}
+
+input#rpg_collects_characters {
+    width:300px;
+}
+
+#lze_wrapper #bbpress-forums div.bbp-the-content-wrapper {
+    float: left;
+    width: 100%;
+}
+
+/*datepicker provisorisch*/
+
+#ui-datepicker-div {
+    background: white;
+}
+
+.ui-datepicker-calendar {
+    width: 250px;
+    background: white;
+}
+
+.ui-datepicker-next {
+    float:right;
+}
+
+/* namepicker */
+
+#ui-id-1 {
+    position: absolute !important;
+    margin-right: 100px;
+    background: white;
+}
+
+#ui-id-1 ul {
+    list-style-type: none;
+}
+
+/* Forenübersicht Anzeige letzter Poster */
+
+.bbp-forum-freshness > a, .bbp-forum-freshness .bbp-topic-meta, .bbp-topic-freshness > a, .bbp-topic-freshness .bbp-topic-meta {
+    display: none;
+}
+
+/* Liste mit Szenen */
+
+.rpg_unread::before {
+    position: absolute;
+    content: '';
+    margin-left: -70px;
+    width: 60px;
+    height:60px;
+    background:url('http://siebentuermen.ch/dev2/wp-content/uploads/2017/03/on.gif');
+    background-size:100%;
+}
+
+
+/* EXTRAFELDER IM FORUM 
+-----------------------*/
+
+.rpg_not_ready {
+    text-decoration: line-through;
+}
+
+/*.rpg_feld.rpg_bbp_own_character {
+    width: 50%;
+    float: left;
+}
+
+.rpg_bbp_date, .rpg_bbp_location, .rpg_bbp_time {
+    width: 30%;
+    float: left;
+    margin-right: 3%;
+}*/
+
+/* partnerboards*/ 
+textarea.lze_partner {
+    width:100%;
+    height: 100px;
+}
+
+/* ausblenden Userava in Charastuff */
+
+body.charastuff #lze_wrapper .bbp-author-avatar {
+    display:none;
+}
