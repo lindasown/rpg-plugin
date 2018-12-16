@@ -671,6 +671,64 @@ function lze_field_list() {
     return $sorted_data;
 }
 
+//get a list of characters by group
+
+function lze_characterlist_by_group( $atts, $wanted ) {
+    global $wpdb;
+    $list = lze_get_characters();
+    $group         = array();
+	$gruppe = '';
+	if (is_array($atts)) {
+		$gruppe = $atts['gruppe'];
+	} else {
+		$gruppe = $atts->slug;
+	}
+    $allfields = $wpdb->get_results("SELECT ID, post_title, post_name FROM wp_posts WHERE post_type = 'lze_felder'");
+    foreach($allfields as $field) {
+        $postid = $field->ID;
+        if (has_term('Kurzbeschreibung', 'Typ', $postid)) {
+            $term_desc = $field->post_name;
+        }
+    }
+    $term_desc = 'lze_'.str_replace("-", "", $term_desc);
+
+    foreach($list as $single_data) {
+        $id = $single_data['id'];
+        if (has_term($gruppe, 'Gruppe', $id)) {
+            $shorttext = "";
+            $group[$single_data['id']] = array();
+            $group[$single_data['id']]['id'] = $single_data['id'];
+            $group[$single_data['id']]['name'] = $single_data['name'];
+            $group[$single_data['id']]['bild'] = lze_get_pic($single_data['id'], 'lze_character_ava');
+            $beschreibung = $wpdb->get_results("SELECT meta_value FROM wp_postmeta WHERE post_id = '".$single_data['id']."' AND meta_key = '".$term_desc."'");
+            foreach($beschreibung as $shorttext) {
+                $text = $shorttext->meta_value;
+            }
+            $group[$single_data['id']]['beschreibung'] = $text;
+        } 
+    }
+    $closed_profiles = 0;
+    if (get_option('rpg_option_pictures') == 'pic-no' OR (is_user_logged_in())){
+        $closed_profiles = 1;
+    }
+    $rpg_terms = get_term_by( 'slug', $gruppe, 'Gruppe', ARRAY_A);
+    $grouptitle = $rpg_terms['name'];
+    if (count($group) > 0) {
+        if (!$wanted) {
+			echo '<h2>' . $grouptitle . '</h2>';
+		};
+        foreach ($group as $single_data) {
+            if (lze_character_active($single_data['id']) && $term_desc && $closed_profiles) {
+                echo '<div class="wantedlist besetzt"><img src="' . $single_data['bild'] . '"><br><p>' . $single_data['name'] . '</p><a class="pseudolink" href="' . get_permalink($single_data['id']) . '" target="_blank">Steckbrief</a><div class="description"><p class="pseudolink">Beschreibung</p>';
+                echo '<div class="char_description"><p>' . $single_data['beschreibung'] . '</p></div></div></div>';
+            } else if (lze_character_active($single_data['id']) && $term_desc && !$closed_profiles) {
+                echo '<div class="wantedlist besetzt"><img src="' . $single_data['bild'] . '"><br><p>' . $single_data['name'] . '</p><div class="description">';
+                echo '<div class="char_description"><p class="pseudolink">Beschreibung</p><p>' . $single_data['beschreibung'] . '</p></div></div></div>';
+            }
+        }
+    }
+}
+
 //get a character sheet for template
 function lze_get_chara_sheet() {
     $list = lze_field_list();
@@ -718,6 +776,23 @@ function lze_user_can_play() {
         }
     }
     return $handler;
+}
+
+//gets the newest user 
+function lze_newest_user() {
+	$allUsers = get_users();
+	usort($allUsers, 'compareByRegisterdate');
+	return end($allUsers)->user_nicename;
+}
+
+//gets all registered groups
+function lze_get_groups() {
+	$terms = get_terms( array(
+		'taxonomy' => 'Gruppe',
+		'post_type' => 'lze_character',
+		'hide_empty' => false,
+	));
+	return $terms;
 }
 
 //makes nice post date 
@@ -768,12 +843,76 @@ function lze_board_is_charastuff($id) {
 function lze_board_is_restricted($id) {
     $return = 0;
     $rpg_parent_id      = wp_get_post_parent_id( $id );
+	$rpg_user_id		= get_current_user_id();
     $rpg_type           = get_post_meta($id, 'rpg_noaccess_meta', true);
     $rpg_parent_type    = get_post_meta($rpg_parent_id, 'rpg_noaccess_meta', true);
     
     if ($rpg_type == 'restricted' | $rpg_parent_type == 'restricted') {
         $return = 1;
     }
+    return $return;
+}
+
+function lze_board_check_access($id) {
+	$return = 0;
+    $parent_id			= wp_get_post_parent_id( $id );
+	$rpg_user_id		= get_current_user_id();
+
+	$guestaccess		= false;
+	$useraccess			= true;
+	$playeraccess		= false;
+	$adminaccess		= false;
+	$ingame				= false;
+
+	//Spieler
+	if (get_post_meta($id, 'rpg_noaccess_meta', true) OR get_post_meta($parent_id, 'rpg_noaccess_meta', true)) {
+		$playeraccess	= true;
+		$useraccess		= false;
+	}
+
+	//Gäste
+	if (get_post_meta($id, 'rpg_forguests_meta', true) OR get_post_meta($parent_id, 'rpg_forguests_meta', true)) {
+		$guestaccess	= true;
+		$useraccess		= true;
+		$playeraccess	= true;
+	}
+
+	//User
+	if (get_post_meta($id, 'rpg_useronly_meta', true) OR get_post_meta($parent_id, 'rpg_useronly_meta', true)) {
+		$useraccess		= true;
+		$playeraccess	= true;
+	}
+
+	//Admins
+	if (get_post_meta($id, 'rpg_foradmins_meta', true) OR get_post_meta($parent_id, 'rpg_foradmins_meta', true)) {
+		$adminaccess	= true;
+		$useraccess		= false;
+	}
+
+	//Ingame / Nebenplay
+	if (get_post_meta($id, 'rpg_ingame_meta', true) OR get_post_meta($id, 'rpg_pastplay_meta', true) OR get_post_meta($parent_id, 'rpg_ingame_meta', true) OR get_post_meta($parent_id, 'rpg_pastplay_meta', true)) {
+		$playeraccess	= true;
+		$useraccess		= false;
+	}
+
+	if (is_user_logged_in() && $useraccess) {
+		$return = true;
+	}
+
+	if (lze_user_can_play() && $playeraccess) {
+		$return = true;
+	}
+
+	if (!is_user_logged_in() && $guestaccess) {
+		$return = true;
+	}
+
+	if (current_user_can('administrator')) {
+		$return = true;
+	}
+
+	//var_dump($return);
+
     return $return;
 }
 
@@ -820,12 +959,8 @@ function lze_get_last_post() {
 function lze_count_postings() {
     global $wpdb;
     $counter    = 0;
-    $add        = 0;
-    $lze_data   = $wpdb->get_results("SELECT ID FROM wp_posts WHERE post_type = 'forum'");
-    foreach($lze_data as $single_data) {
-        $add = intval(bbp_get_forum_post_count($single_data->ID));
-        $counter = $counter + $add;
-    }
+	$lze_data   = $wpdb->get_results("SELECT ID FROM wp_posts WHERE post_type = 'reply' OR post_type = 'topic'");
+	$counter = count($lze_data);
     return $counter;
 }
 
@@ -992,6 +1127,11 @@ function compareByTitle($a, $b) {
 function compareByName($a, $b) {
   return strcmp($a["name"], $b["name"]);
 }
+
+function compareByRegisterdate($a, $b) {
+  return strcmp($a->user_registered, $b->user_registered);
+}
+
 
 //allow html tags in bbpress posts
 function ja_filter_bbpress_allowed_tags() {
