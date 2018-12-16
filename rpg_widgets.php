@@ -1,5 +1,5 @@
 <?php
-// by copying snippet
+// Nach Vorlage.
 // Creating the widget 
 class rpg_widget extends WP_Widget {
 
@@ -27,9 +27,11 @@ public function widget( $args, $instance ) {
 
         // This is where you run the code and display the output
         echo '<ul>';
-        echo '<li>Aktive Charaktere: '.lze_count_characters().'</li>';  
-        echo '<li>Neuster Charakter<br>'.lze_last_character().'</li>';
-        echo '<li>'.lze_count_postings().' Postings</li>';
+		echo '<li>Aktive User: '.count_users()['total_users'].'</br>';  
+        echo 'Neuster User:<br>'.lze_newest_user().'</li>';
+        echo '<li>Aktive Charaktere: '.lze_count_characters().'</br>';  
+        echo 'Neuster Charakter:<br>'.lze_last_character().'</li>';
+		echo '<li>'.lze_count_postings().' Postings seit 5. April 2014</li>';
         echo '</ul>';
         
         echo $args['after_widget'];
