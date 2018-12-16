@@ -11,7 +11,7 @@ function lze_get_character_data() {
     echo '<h2>Männliche Avatarpersonen</h2><ul>';
     foreach ($lze_data as $single_data) {
         //checks if a value is available and if the avatar person is for a male character.
-        if ($single_data->meta_value && in_array($single_data->post_id, $lze_men))  {
+        if ($single_data->meta_value && in_array($single_data->post_id, $lze_men) && lze_character_active($single_data->post_id))  {
             echo '<li>';
             //echoes value and connected character.
             echo $single_data->meta_value;
@@ -22,7 +22,7 @@ function lze_get_character_data() {
     echo '</ul><h2>Weibliche Avatarpersonen</h2><ul>';
     foreach ($lze_data as $single_data) {
         //checks if a value is available and if the avatar person is for a female character.
-        if ($single_data->meta_value && in_array($single_data->post_id, $lze_women))  {
+        if ($single_data->meta_value && in_array($single_data->post_id, $lze_women) && lze_character_active($single_data->post_id))  {
             echo '<li>';
             //echoes value and connected character.
             echo $single_data->meta_value;
@@ -81,8 +81,7 @@ add_shortcode( 'Count', 'lze_count_characters' );
 function lze_last_character() {
     $characters = lze_get_characters();
     usort($characters, "cmp");
-    $counter = count($characters) -1;
-    return $characters[$counter]['name'];
+	return end($characters)['name'];
 }
 add_shortcode( 'Neuster_Charakter', 'lze_last_character' );
 
@@ -92,51 +91,7 @@ function lze_group_list( $atts ) {
 		array(
 			'gruppe' => '',
 		), $atts, 'gruppenliste' );
-    
-    global $wpdb;
-    $list = lze_get_characters();
-    $group         = array();
-    $allfields = $wpdb->get_results("SELECT ID, post_title, post_name FROM wp_posts WHERE post_type = 'lze_felder'");
-    foreach($allfields as $field) {
-        $postid = $field->ID;
-        if (has_term('Kurzbeschreibung', 'Typ', $postid)) {
-            $term_desc = $field->post_name;
-        }
-    }
-    $term_desc = 'lze_'.str_replace("-", "", $term_desc);
-    foreach($list as $single_data) {
-        $id = $single_data['id'];
-        if (has_term($atts['gruppe'], 'Gruppe', $id)) {
-            $shorttext = "";
-            $group[$single_data['id']] = array();
-            $group[$single_data['id']]['id'] = $single_data['id'];
-            $group[$single_data['id']]['name'] = $single_data['name'];
-            $group[$single_data['id']]['bild'] = lze_get_pic($single_data['id'], 'lze_character_ava');
-            $beschreibung = $wpdb->get_results("SELECT meta_value FROM wp_postmeta WHERE post_id = '".$single_data['id']."' AND meta_key = '".$term_desc."'");
-            foreach($beschreibung as $shorttext) {
-                $text = $shorttext->meta_value;
-            }
-            $group[$single_data['id']]['beschreibung'] = $text;
-        } 
-    }
-    $closed_profiles = 0;
-    if (get_option('rpg_option_pictures') == 'pic-no' OR (is_user_logged_in())){
-        $closed_profiles = 1;
-    }
-    $rpg_terms = get_term_by( 'slug', $atts['gruppe'], 'Gruppe', ARRAY_A);
-    $grouptitle = $rpg_terms['name'];
-    if (count($group) > 0) {
-        echo '<h2>' . $grouptitle . '</h2>';
-        foreach ($group as $single_data) {
-            if (lze_character_active($single_data['id']) && $term_desc && $closed_profiles) {
-                echo '<div class="wantedlist besetzt"><img src="' . $single_data['bild'] . '"><br><p>' . $single_data['name'] . '</p><a href="' . get_permalink($single_data['id']) . '" target="_blank">Steckbrief</a><div class="description"><p class="pseudolink">Beschreibung</p>';
-                echo '<div class="char_description"><p>' . $single_data['beschreibung'] . '</p></div></div></div>';
-            } else if (lze_character_active($single_data['id']) && $term_desc && !$closed_profiles) {
-                echo '<div class="wantedlist besetzt"><img src="' . $single_data['bild'] . '"><br><p>' . $single_data['name'] . '</p><div class="description">';
-                echo '<div class="char_description"><p class="pseudolink">Beschreibung</p><p>' . $single_data['beschreibung'] . '</p></div></div></div>';
-            }
-        }
-    }
+	lze_characterlist_by_group( $atts, false );  
 }
 add_shortcode( 'gruppenliste', 'lze_group_list' );
 
