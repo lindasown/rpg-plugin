@@ -56,6 +56,7 @@ if (is_admin()) {
         add_meta_box("singlewanted_seeker", "Wer sucht?", "singlewanted_seeker", "lze_s_wanted", "normal", "high");
         add_meta_box("singlewanted_wanted", "Beschreibung des gesuchten Charakters", "singlewanted_wanted", "lze_s_wanted", "normal", "high");
         add_meta_box("singlewanted_reason", "Warum wird der Charakter gesucht?", "singlewanted_reason", "lze_s_wanted", "normal", "high");
+		add_meta_box("singlewanted_relatedto", "Gehört der Charakter zu einer Gruppe?", "singlewanted_relatedto", "lze_s_wanted", "normal", "high");
         add_meta_box("singlewanted_avatar", "Vorschlag Avatarperson", "singlewanted_avatar", "lze_s_wanted", "normal", "high");
         add_meta_box("singlewanted_pic", "Bild", "singlewanted_pic", "lze_s_wanted", "normal", "high");
     }
@@ -166,6 +167,27 @@ if (is_admin()) {
         echo '<textarea class="singlewanted_reason" name="singlewanted_reason"/>'.$value.'</textarea>';
     }
 
+	function singlewanted_relatedto() {
+        global $post;
+        $value = "";
+        if (get_post_meta( $post->ID, 'singlewanted_relatedto', true)) {
+            $value = get_post_meta( $post->ID, 'singlewanted_relatedto', true);
+        }
+		$options = '';
+		$allGroups = lze_get_groups();
+		foreach ($allGroups as $single_data) {
+			if ($value == $single_data->slug) {
+				$options .= '<option selected="selected" value="'.$single_data->slug.'">'.$single_data->name.'</option>';
+			} else {
+				$options .= '<option value="'.$single_data->slug.'">'.$single_data->name.'</option>';
+			}
+		}
+
+		echo '<select name="singlewanted_relatedto"><option value="nogroup">Nein</option>'. $options .'</select><br><br>';
+		
+    }
+
+
     function singlewanted_avatar() {
         global $post;
         $value = "";
@@ -206,6 +228,11 @@ if (is_admin()) {
         if (isset($_POST) && isset($_POST['singlewanted_pic'])) {
             update_post_meta( $topic_id, 'singlewanted_pic', $_POST['singlewanted_pic'] );
         }
+
+		if (isset($_POST)) {
+            update_post_meta( $topic_id, 'singlewanted_relatedto', $_POST['singlewanted_relatedto'] );
+        }
+
 
         if (isset($_POST)) {
             $newSise = array();
@@ -287,6 +314,7 @@ if (is_admin()) {
         add_meta_box("groupwanted_wanted", "Gruppenbeschreibung", "groupwanted_wanted", "lze_group_wanted", "normal", "high");
         add_meta_box("groupwanted_reason", "Warum wird gesucht?", "groupwanted_reason", "lze_group_wanted", "normal", "high");
         add_meta_box("groupwanted_members", "Gesuchte Gruppenmitglieder", "groupwanted_members", "lze_group_wanted", "normal", "high");
+		add_meta_box("groupwanted_relatedto", "Ist das eine offizielle Foren-(Unter-)Gruppe?", "groupwanted_relatedto", "lze_group_wanted", "normal", "high");
         add_meta_box("groupwanted_pic", "Symbolbild der Gruppe", "groupwanted_pic", "lze_group_wanted", "normal", "high");
     }
 
@@ -392,6 +420,26 @@ if (is_admin()) {
         echo '<textarea class="groupwanted_reason" name="groupwanted_reason">'.$value.'</textarea>';
     }
 
+	function groupwanted_relatedto() {
+        global $post;
+        $value = "";
+        if (get_post_meta( $post->ID, 'groupwanted_relatedto', true)) {
+            $value = get_post_meta( $post->ID, 'groupwanted_relatedto', true);
+        }
+		$options = '';
+		$allGroups = lze_get_groups();
+		foreach ($allGroups as $single_data) {
+			if ($value == $single_data->slug) {
+				$options .= '<option selected="selected" value="'.$single_data->slug.'">'.$single_data->name.'</option>';
+			} else {
+				$options .= '<option value="'.$single_data->slug.'">'.$single_data->name.'</option>';
+			}
+		}
+
+		echo '<select name="groupwanted_relatedto"><option value="nogroup">Nein</option>'. $options .'</select><br><br>';
+		
+    }
+
     function groupwanted_pic() {
         global $post;
         $value = get_post_meta( $post->ID, 'groupwanted_pic', true);
@@ -479,6 +527,10 @@ if (is_admin()) {
         }
         if (isset($_POST) && isset($_POST['groupwanted_pic'])) {
             update_post_meta( $post->ID, 'groupwanted_pic', $_POST['groupwanted_pic'] );
+        }
+
+		if (isset($_POST)) {
+            update_post_meta( $post->ID, 'groupwanted_relatedto', $_POST['groupwanted_relatedto'] );
         }
 
         if (isset($_POST) && isset($_POST['groupwanted_wanted'])) {
