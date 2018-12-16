@@ -39,7 +39,7 @@ function rpg_scene_information() {
     }
 }
 
-add_action( 'bbp_theme_before_forum_freshness_link', 'rpg_scene_title' ); 
+add_action( 'bbp_theme_before_forum_freshness_link', 'rpg_topic_title' ); 
 add_action( 'bbp_theme_before_topic_freshness_link', 'rpg_scene_title_topic' ); 
 
 //FORUM-freshness-information depending of forum type
@@ -133,6 +133,106 @@ function rpg_scene_title() {
         echo '<span class="rpg_keine_themen">Keine Themen</span>';
     }
 }
+
+function rpg_topic_title() {
+    $post_id                = 0;
+    if (lze_get_last_post()) {
+        $post_id            = lze_get_last_post();
+    }
+    if ($post_id) {
+        $rpg_parent_id      = wp_get_post_parent_id( bbp_get_topic_id() );
+        $funnytitle         = get_post($post_id)->post_title;
+        $title              = "";
+        $is_topic           = 0;
+        if (get_post($post_id)->post_type == 'topic') {
+            $is_topic = 1;
+        }
+        if (isset($funnytitle) && !$is_topic) {
+            $pid    = wp_get_post_parent_id( $post_id );
+            $title = get_post($pid)->post_title;
+        } else if ($is_topic) {
+            //if topic has answer
+            $title = str_replace("Antwort zu: ", '', $funnytitle);
+        }
+		if(strlen($title) > 30) {
+			$title = wordwrap($title, 30);
+			$title = substr($title, 0, strpos($title,"\n")).'...';
+		} 
+        //if inplay or charastuff, information about the character is displayed.
+
+		if (lze_board_is_inplay(bbp_get_forum_id())) {
+
+			$character      = get_post_meta($post_id, 'rpg_bbp_own_character_p', true);
+            if (!$character) {
+                $character = get_post_meta($post_id, 'rpg_bbp_own_character', true);
+                $character = get_post_meta($post_id, 'rpg_bbp_own_character', true);
+                if (!$character) {
+                    global $wpdb;
+                    $active = 0;
+                    $names = $wpdb->get_results("SELECT starter, username FROM wp_posts WHERE ID = '".$post_id."'");
+                    foreach($names as $name) {
+                        if ($name->starter) {
+                            $character = $name->starter;
+                        } else {
+                            $character = $name->username;
+                        }
+                    }
+                }
+            }
+            $stuff          = array('1', '2', '3', '4', '5', '6', '7', '8', '9', '0', ', ');
+            $character      = str_replace($stuff, '', $character);
+            echo '<div class="rpg_ingame_topic_information">';
+
+			if (lze_board_check_access(bbp_get_forum_id())) {
+				echo '<a class="rpg_forum_title" href="';
+                echo bbp_get_reply_url($post_id);
+                echo '">';
+                echo $title.'</a><br>';
+                echo 'von '.$character.'<br>';
+                lze_post_date($post_id);
+                echo '</div>';
+				
+			} else {
+				echo '<span class="rpg_versteckt">unbekannt</span><br>';
+                echo 'von '.$character.'<br>';
+                lze_post_date($post_id);
+                echo '</div>';
+
+			}
+
+		} else {
+			$authorid = get_post($post_id)->post_author; 
+            $userinformation = get_userdata($authorid);
+            echo '<div class="rpg_ingame_topic_information">';
+
+			if (lze_board_check_access(bbp_get_forum_id())) {
+				echo '<a class="rpg_forum_title" href="';
+				echo bbp_get_reply_url($post_id);
+				echo '">';
+				echo $title.'</a><br>';
+				
+
+			} else {
+				echo '<span class="rpg_versteckt">unbekannt</span><br>';
+
+			}
+
+			if ($authorid) {
+                echo 'von '.get_the_author_meta( 'nickname', $authorid ).'<br>';
+            } else {
+                echo 'von einem Gast<br>';
+            }
+            lze_post_date($post_id);
+
+            echo '</div>';
+
+		}
+    } else {
+        echo '<span class="rpg_keine_themen">Keine Themen</span>';
+    }
+}
+
+
 
 //TOPIC-freshness-information depending of forum type
 function rpg_scene_title_topic() {
