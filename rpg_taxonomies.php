@@ -115,6 +115,20 @@ function lze_g_wanted_team() {
     wp_insert_term('Boardgesuch', 'Boardgesuch');
 }
 
+add_action('init', 'lze_s_wanted_team');
+function lze_s_wanted_team() {
+    register_taxonomy( "Boardgesuch",
+        array( "lze_s_wanted" ),
+        array( 
+            "hierarchical"      => true,
+            "label"             => "Boardgesuch",
+            "singular_label"    => "Boardgesuch",
+            "rewrite"           => true
+             )
+    );  
+    wp_insert_term('Boardgesuch', 'Boardgesuch');
+}
+
 add_action('init', 'lze_s_wanted_stat');
 function lze_s_wanted_stat() {
     register_taxonomy( "Frei",
